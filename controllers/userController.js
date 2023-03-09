@@ -42,14 +42,15 @@ export const subscribeUser = async (req, res, next) => {
         return next(createError(500, "You cannot Subscribe to your own channel!"));
     } else {
         try {
-            const existsUser = await User.find({ subscribedUsers: { $in: req.params.id } }).limit(20);
-
-            if (!existsUser[0]) {
-                await User.findByIdAndUpdate(req.user.id, { $addToSet: { subscribedUsers: req.params.id } });
-                await User.findByIdAndUpdate(req.params.id, { $inc: { subscribers: 1 } });
-            } else {
-                return next(createError(500, "You are already a Subscriber!"));
-            }
+            // const existsUser = await User.find({ subscribedUsers: { $in: req.params.id } }).limit(20);
+            await User.findByIdAndUpdate(req.user.id, { $addToSet: { subscribedUsers: req.params.id } });
+            await User.findByIdAndUpdate(req.params.id, { $inc: { subscribers: 1 } });
+            // if (!existsUser[0]) {
+            //     await User.findByIdAndUpdate(req.user.id, { $addToSet: { subscribedUsers: req.params.id } });
+            //     await User.findByIdAndUpdate(req.params.id, { $inc: { subscribers: 1 } });
+            // } else {
+            //     return next(createError(500, "You are already a Subscriber!"));
+            // }
             res.status(200).json({
                 message: "Subscription successfull"
             });
@@ -64,14 +65,16 @@ export const unSubscribeUser = async (req, res, next) => {
         return next(createError(500, "You cannot UnSubscribe to your own channel!"));
     } else {
         try {
-            const existsUser = await User.find({ subscribedUsers: { $in: req.params.id } }).limit(20);
+            // const existsUser = await User.find({ subscribedUsers: { $in: req.params.id } }).limit(20);
+            await User.findByIdAndUpdate(req.user.id, { $pull: { subscribedUsers: req.params.id } });
+            await User.findByIdAndUpdate(req.params.id, { $inc: { subscribers: -1 } });
 
-            if (existsUser[0]) {
-                await User.findByIdAndUpdate(req.user.id, { $pull: { subscribedUsers: req.params.id } });
-                await User.findByIdAndUpdate(req.params.id, { $inc: { subscribers: -1 } });
-            } else {
-                return next(createError(500, "You are not a Subscriber!"));
-            }
+            // if (existsUser[0]) {
+            //     await User.findByIdAndUpdate(req.user.id, { $pull: { subscribedUsers: req.params.id } });
+            //     await User.findByIdAndUpdate(req.params.id, { $inc: { subscribers: -1 } });
+            // } else {
+            //     return next(createError(500, "You are not a Subscriber!"));
+            // }
             res.status(200).json({
                 message: "UnSubscribed successfully"
             });
@@ -101,7 +104,7 @@ export const dislikeVideo = async (req, res, next) => {
     const videoId = req.params.videoId;
 
     try {
-        await Video.findByIdAndUpdate(videoId, { $addToSet: { dislikes: id },$pull: { likes: id } });
+        await Video.findByIdAndUpdate(videoId, { $addToSet: { dislikes: id }, $pull: { likes: id } });
         // await Video.findByIdAndUpdate(videoId, { $pull: { likes: id } });
         res.status(200).json({
             message: "The video has been disliked!"
